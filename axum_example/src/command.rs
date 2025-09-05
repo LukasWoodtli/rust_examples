@@ -1,10 +1,21 @@
+use async_trait::async_trait;
 
-pub(crate) async fn run_shell_command() -> String {
-    let mut child = tokio::process::Command::new("/usr/bin/echo");
-    child.arg("Hello, Axum!");
-    let stdout = child.stdout(std::process::Stdio::piped())
-        .output()
-        .await.expect("Failed to run echo command")
-        .stdout;
-    String::from_utf8_lossy(&stdout).to_string()
+#[async_trait]
+pub(crate) trait CommandExecutor {
+    async fn execute(&self, command: &str) -> String;
+}
+
+pub(crate) struct TokioCommandExecutor;
+
+#[async_trait]
+impl CommandExecutor for TokioCommandExecutor {
+    async fn execute(&self, command: &str) -> String {
+        let parts: Vec<&str> = command.split_whitespace().collect();
+        let output = tokio::process::Command::new(parts[0])
+            .args(parts[1..].into_iter())
+            .output()
+            .await
+            .expect("command failed to run");
+        String::from_utf8_lossy(&output.stdout).to_string()
+    }
 }
