@@ -3,7 +3,7 @@ use std::io::{ErrorKind, Read, Write};
 
 fn get_req(path: &str) -> String {
     format!("GET {path} HTTP/1.1\r\n\
-    Host: localhost\r\n
+    Host: localhost\r\n\
     Connection: close\r\n\r\n")
 }
 
@@ -26,7 +26,8 @@ impl HttpGetFuture {
         let stream = std::net::TcpStream::connect("127.0.0.1:8080").unwrap();
         stream.set_nonblocking(true).unwrap();
         let mut stream = mio::net::TcpStream::from_std(stream);
-        stream.write_all(get_req(&self.path).as_bytes()).unwrap();
+        let request = get_req(&self.path);
+        stream.write_all(request.as_bytes()).unwrap();
         self.stream = Some(stream);
     }
 }
