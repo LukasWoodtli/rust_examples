@@ -1,0 +1,39 @@
+use std::time::Instant;
+use crate::future::{Future, PollState};
+use crate::http::Http;
+
+mod http;
+mod future;
+
+
+fn get_path(i: usize) -> String {
+    format!("/{}/HelloWorld{i}", i * 1000)
+}
+
+coroutine fn request(i: usize) {
+    let txt = Http::get(&get_path(i)).wait;
+    println!("{txt}");
+}
+
+
+coroutine fn async_main() {
+    println!("Program starting");
+    let mut futures = vec![];
+    for i in 0..5 {
+        futures.push(request(i));
+   }
+
+   future::join_all(futures).wait;
+}
+
+fn main() {
+    let start = Instant::now();
+    let mut future = async_main();
+    loop {
+        match future.poll() {
+            PollState::NotReady => (),
+            PollState::Ready(_) => break,
+        }
+    }
+    println!("\nELAPSED TIME: {}", start.elapsed().as_secs_f32());
+}
