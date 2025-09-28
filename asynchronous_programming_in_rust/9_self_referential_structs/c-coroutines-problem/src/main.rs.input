@@ -1,0 +1,18 @@
+mod future;
+mod http;
+mod runtime;
+use future::{Future, PollState};
+
+fn main() {
+    let future = async_main();
+    let mut runtime = runtime::init();
+    runtime.block_on(future);
+}
+
+coroutine fn async_main() {
+    println!("Program starting!");
+    let txt = http::Http::get("/600/HelloAsyncAwait").wait;
+    println!("{txt}");
+    let txt = http::Http::get("/400/HelloAsyncAwait").wait;
+    println!("{txt}");
+}
